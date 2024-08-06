@@ -1,0 +1,157 @@
+## [四数相加Ⅱ](https://leetcode.cn/problems/4sum-ii/description/)
+
+四数相加要求从四个整数数组中获得四个数满足相加为0，因为没有限制重复元素情况，所以四个数组完全分离，可使用一个哈希表来解，首先将前两个数组逐个相加计入map中，key为两个相加的和，value为key出现的次数，而之后在遍历后两个数组相加的值**取反**，在map中查找是否有该值，如果有，count++，最后输出count.  
+注意加粗取反，之所以取反求解是为了寻找和为0的情况，如nums1+nums[2] = -(nums3+nums4)
+### 代码
+```cpp
+class Solution {
+public:
+    int fourSumCount(vector<int>& nums1, vector<int>& nums2, vector<int>& nums3, vector<int>& nums4) {
+        unordered_map<int,int> umap;
+        for(int a: nums1){
+            for(int b:nums2){
+                umap[a+b]++;
+            }
+        }
+        int count = 0;
+        for(int c:nums3){
+            for(int d:nums4){
+                if(umap.find(0-(c+d))!= umap.end()){
+                    count += umap[0-(c+d)];
+                }
+            }
+        }
+        return count;
+    }
+};
+```
+
+## [赎金信](https://leetcode.cn/problems/ransom-note/description/)
+
+因为字符只能使用一次，所以先判断子串长度是否大于母串，大于直接返回false。因为字母只有26个，所以可以直接使用数组解决，用一个长度26的数组，存储母串26个字符出现次数，随后遍历子串，并在数组中减去对应字符个数，如果数组中有小于0的，则表示母串字符无法构成字串。
+### 代码
+```cpp
+class Solution {
+public:
+    bool canConstruct(string ransomNote, string magazine) {
+        int record[26] = {0};
+        if(ransomNote.size() > magazine.size())
+        {
+            return false;
+        }
+        for(char c : magazine)
+        {
+            record[c-'a']++;
+        }
+        for(char c : ransomNote)
+        {
+            record[c - 'a']--;
+        }
+        for(int i = 0; i <26;i++)
+        {
+            if(record[i] <0)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+};
+```
+
+
+## [三数之和](https://leetcode.cn/problems/3sum/description/)
+
+这道题目总体思路并不难，但是需要非常细心，思考到各种情况。使用双指针法,首先将这个数组排序，这样才能够使用双指针法。随后从0开始遍历，如果nums[i] > 0 就直接返回，是因为，双指针是在i+1到nums.size()-1之间遍历，所以排序后如果nums[i]>0,则相加结果已经不可能等于0.随后如果进行去重  
+说到去重，其实主要考虑三个数的去重。 a, b ,c, 对应的就是 nums[i]，nums[left]，nums[right]a 如果重复了怎么办，a是nums里遍历的元素，那么应该直接跳过去。但这里有一个问题，是判断 nums[i] 与 nums[i + 1]是否相同，还是判断 nums[i] 与 nums[i-1] 是否相同。有同学可能想，这不都一样吗其实不一样！都是和 nums[i]进行比较，是比较它的前一个，还是比较它的后一个。如果我们的写法是 这样：
+```cpp
+if (nums[i] == nums[i + 1]) { // 去重操作
+    continue;
+}
+```
+那我们就把 三元组中出现重复元素的情况直接pass掉了。 例如{-1, -1 ,2} 这组数据，当遍历到第一个-1 的时候，判断 下一个也是-1，那这组数据就pass了。我们要做的是 不能有重复的三元组，但三元组内的元素是可以重复的！所以这里是有两个重复的维度。那么应该这么写：
+```cpp
+if (i > 0 && nums[i] == nums[i - 1]) {
+    continue;
+}
+```
+这么写就是当前使用 nums[i]，我们判断前一位是不是一样的元素，在看 {-1, -1 ,2} 这组数据，当遍历到 第一个 -1 的时候，只要前一位没有-1，那么 {-1, -1 ,2} 这组数据一样可以收录到 结果集里。
+
+### 代码
+```cpp
+ public:  
+    vector<vector<int>> threeSum(vector<int>& nums) {  
+        vector<vector<int>> result;  
+        sort(nums.begin(),nums.end());  
+        for(int i = 0; i< nums.size();i++)  
+        {  
+            if(nums[i] >  0)  
+                return result;  
+            if(i > 0 && nums[i] == nums[i-1])  //去重
+                continue;  
+            int left = i+1,right = nums.size()-1;  
+            while(left < right)  
+            {  
+                if(nums[i]+nums[left]+nums[right] > 0) right--;  
+                else if(nums[i]+nums[left]+nums[right] < 0) left++;  
+                else  
+                {  
+                    result.push_back(vector<int>{nums[i],nums[left],nums[right]});  
+                    while(left < right &&nums[right-1] == nums[right]) right--;  
+                    while(left < right &&nums[left+1]==nums[left]) left++;  
+                    right--;  
+                    left++;  
+                }  
+            }  
+        }  
+        return result;  
+    }  
+};
+```
+
+## [四数之和](https://leetcode.cn/problems/4sum/description/)
+四数之和我认为和三数之和是差不多的思想，还是使用双指针。  
+四数之和的双指针解法是两层for循环nums[k] + nums[i]为确定值，依然是循环内有left和right下标作为双指针，找出nums[k] + nums[i] + nums[left] + nums[right] == target的情况，三数之和的时间复杂度是O(n^2)，四数之和的时间复杂度是O(n^3) 。  
+但是有一些细节需要注意，例如： 不要判断nums[k] > target 就返回了，三数之和 可以通过 nums[i] > 0 就返回了，因为 0 已经是确定的数了，四数之和这道题目 target是任意值。比如：数组是[-4, -3, -2, -1]，target是-10，不能因为-4 > -10而跳过。但是我们依旧可以去做剪枝，逻辑变成nums[i] > target && (nums[i] >=0 || target >= 0)就可以了。
+
+### 代码
+```cpp
+class Solution {
+public:
+    vector<vector<int>> fourSum(vector<int>& nums, int target) {
+        vector<vector<int>> result;
+        sort(nums.begin(),nums.end());
+        for(int k = 0; k < nums.size();k++)
+        {
+            if(nums[k] > target && nums[k]>=0) //剪枝处理
+                break; //直接return 也没问题但为了美观统一最后return.
+            if(k > 0 && nums[k] == nums[k-1]) //对nums[k]去重
+                continue;
+            for(int i = k+1; i < nums.size();i++)
+            {
+                if(nums[k]+nums[i] > target && nums[k]+nums[i]>=0)// 二级剪枝处理 
+                    break;
+                if(i>k+1 && nums[i] == nums[i-1]) //对nums[i]去重
+                    continue;
+                int left = i+1,right = nums.size() - 1;
+                while(left < right)
+                {
+                    //使用long是因为会有溢出的情况。
+                    if((long)nums[k]+nums[i]+nums[left]+nums[right] > target) right--;
+                    else if((long)nums[k]+nums[i]+nums[left]+nums[right] < target) left++;
+                    else 
+                    {
+                        result.push_back(vector<int>{nums[k],nums[i],nums[left],nums[right]});
+                        while(left<right && nums[right-1] == nums[right]) right--;
+                        while(left<right && nums[left+1] == nums[left]) left++;
+                        right--;
+                        left++;
+                    }
+                }
+            }
+        }
+        return result;
+    }
+};
+```
+
