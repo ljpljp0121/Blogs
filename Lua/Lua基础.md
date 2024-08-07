@@ -44,6 +44,32 @@
     设置t1的元表为mt
     setmetatable(t1,mt)
     **具体过程先查看t1是否有元表，若有，查看t1元表是否有_add元方法，有则调用，没有看t2,如都没则报错**
-4.  
- 
+### __index 元方法
+ 当通过键来访问table的时候，如果这个键没有值，那么lua会寻找该table的metatable(假如有的话)中的__index键，如果不存在，返回nil，存在则由__index返回结果
+```python
+mytable = setmetatable({key1 = "value1"},{
+    __index = function(mytable,key)
+        if key == "key2" then
+            return "metatablevalue"
+        else
+            return nil
+        end
+    end
+})
+print(mytable.key1,mytable.key2)
+```
+输出结果为 value1  metatablevalue
 
+实例解析:
+1. mytable 表赋值为{key1 = "value1"}
+2. mytable 设置了元表，元方法为 __index
+3. 再mytable表中查找key1，如果找到，返回该元素，找不到则继续
+4. 在mytable表中查找key2，如果找到，返回metatablevalue，找不到则继续
+5. 判断元表有没有__index方法，如果__index方法是一个函数，则调用该函数
+6. 元方法中查看是否传入"key2"键的参数，如果传入返回"metatablevalue"，否则返回mytable对应的键值
+### __newindex 元方法
+__newindex 元方法用来对表更新，__index用来对表访问。
+当你给表的一个缺少的索引赋值，解释器会查找到__newindex元方法，如果存在则调用这个函数而不进行赋值操作
+
+## 协程
+[协同程序文档](https://www.runoob.com/lua/lua-coroutine.html)
