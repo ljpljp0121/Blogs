@@ -447,3 +447,100 @@ e. resize
 3. 注意在使用长度操作符#对数组其长度时，数组不应该包含nil值，否则很容易出错
 4. table中要想删除一个元素等同于向对应key赋值为nil，等待垃圾回收。但是删除table一个元素时候
 并不会触发表重构行为，即不会触发rehash操作。
+
+### rawset和rawget
+在Lua中，rawset和rawget 是两个用于直接操作表(table)的函数，它们绕过了元表(metatable)中定义的元方法(metamethods)。这意味着即使表设置了元表，并且元表中包含了_index和_newindex这样的元方法，使用rawset和rawget也会忽略这些元方法，直接访问或修改表的实际内容。
+
+#### rawset
+rawset 函数用于直接在表中设置一个键值对，而不触发元表中的_newindex元方法。其语法如下:
+```lua
+rawset(table,key,value)
+```
+1. table是你想要修改的表
+2. key是你想要设置的键
+3. value是与键关联的值   
+
+如果尝试对一个设置了__newindex元方法的表进行修改，通常元方法会被调用。使用rawset可以跳过这个行为，直接修改表。
+
+#### rawget
+rawget 函数用于直接从表中获取键对应的值，而不触发元表中的__index方法。其语法如下:
+```lua
+value = rawget(table,key)
+```
+1. table是你想要从中获取的表
+2. key是你想要获取值的键
+
+与rawset类似，如果表设置了元表，并且元表中定义了__index元方法，通常访问一个不存在的键会触发这个元方法。使用rawget可以直接从表中获取值，而不会调用__index元方法。
+##### 实例
+```lua
+local mt = {
+    __index = function (t,k)
+        print("Tried to access the key " .. tostring(k))
+    end,
+    __newindex = function (t,k,v)
+        print("Tried to set " .. tostring(k) .. " to " .. tostring(v))
+    end
+}
+
+local t = {}
+setmetatable(t,mt)
+
+--通常访问和设置会触发元方法
+t.a = 1 --输出：Tried to set a to 1
+print(t.a) -- 输出：Tried to access the key a
+
+--使用rawset和rawget绕过元方法
+rawset(t,"a",2)
+print(rawget(t,"a")) --输出：2
+```
+
+### Lua调试原理
+#### 1.如何让程序暂停执行
+Lua虚拟机(也可称之为解释器)内部提供了一个接口:用户可以在应用程序中设置一个钩子函数(Hook)，虚拟机在执行指令码的时候会检查用户是否设置了钩子函数，如果设置了，就调用这个钩子函数。本质上就是设置一个回调函数，因为都是用C语言来实现的，虚拟机中只要把这个钩子函数的地址记住，然后在某些场合回调这个函数就可以了。
+
+设置钩子函数的基础API原型如下:
+```c
+void lua_sethook(lua_State *L, lua_Hook f, int mask, int count);
+```
+也可以通过下面即将介绍的调试库中的函数来设置钩子函数，效果是一样的，因为调试库函数的内部也是调用基础函数。
+```lua
+debug.sethook([thread,] hook, mask [,count])
+```
+
+#### 2.Lua调试库是什么？
+先看库中提供的几个重要的函数:
+```lua
+debug.gethook
+debug.sethook
+debug.getinfo
+debug.getlocal
+debug.setlocal
+debug.setupvalue
+debug.traceback
+debug.getregistry
+```
+上面已经说到，Lua给用户提供了设置钩子的API函数lua_sethook,用户可以直接调用这个函数，此时传入的钩子函数的定义格式需要满足要求。
+
+#### 3.获取程序内部信息
+在钩子函数中，可以通过如下API函数来获取程序内部的信息:
+```c
+int lua_getinfo(lua_State *L, const char *what, lua_Debug *ar);
+```
+在这个API函数中：
+第二个参数用来告诉虚拟机我们想要获取程序的哪些信息
+第三个参数用来存储获取到的信息
+
+#### 4.修改程序内部信息
+经过上面的讲解，已经看到我们获取程序信息都是通过Lua提供的API函数，或者是利用调试库提供的接口函数来完成的。那么修改程序内部信息也同样如此。
+Lua提供了下面这2个API函数来修改函数中的变量:
+1. 修改当前活动记录总的局部变量的值:
+```c
+const char *lua_setlocal(lua_State *L, const lua_Debug *ar, int n);
+```
+2. 设置闭包上值的值(上值upvalue就是闭包使用了外层的那些变量)
+```c
+const char *lua_setupvalue(lua_State *L, int funcindex, int n);
+```
+同样的，也可以利用调试库中的debug.setlocal和debug.setupvalue来完成同样的功能。
+
+

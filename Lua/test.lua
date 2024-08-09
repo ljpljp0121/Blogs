@@ -116,3 +116,23 @@ end
 local fn = foo()
 fn()
 print(fn())
+
+local mt = {
+    __index = function (t,k)
+        print("Tried to access the key " .. tostring(k))
+    end,
+    __newindex = function (t,k,v)
+        print("Tried to set " .. tostring(k) .. " to " .. tostring(v))
+    end
+}
+
+local t = {}
+setmetatable(t,mt)
+
+--通常访问和设置会触发元方法
+t.a = 1 --输出：Tried to set a to 1
+print(t.a) -- 输出：Tried to access the key a
+
+--使用rawset和rawget绕过元方法
+rawset(t,"a",2)
+print(rawget(t,"a")) --输出：2
