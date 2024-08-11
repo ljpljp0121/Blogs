@@ -5,6 +5,10 @@
 整体项目核心是维护一个有限状态机，玩家每个时刻只可能处于一个状态。
 **这个游戏的核心就是通过合理的架构维护状态机，然后修正玩家的状态，其中最主要的就是垂直和水平两个速度，∈各种手感都是维护这两个变量而呈现出来的。**
 
+主要包含了以知识点
+
+
+
 ## 使用inputSystem
 创建一个inputsystem，为想要操控的人物添加脚本，脚本需要声明InputActionAsset类型的组件，并将创建的资源拖到上面。然后在代码中使用InputAction类型将对应的Actions取出来如：
 ```C#
@@ -14,3 +18,67 @@ InputAction m_movement = actions["Movement"];
 
 ## 状态机
 ![alt text](有限状态机.png)
+### Entity
+他是一个抽象类，被敌人和玩家继承，主要处理角色之间都有的行为，比如移动和碰撞，还有一些基础属性和方法。
+### EntityEvents
+这个类主要定义会被Entity组件触发的事件。基础有这几个
+```C#
+public UnityEvent OnGroundEnter;
+public UnityEvent OnGroundExit;
+public UnityEvent OnRailsEnter;
+public UnityEvent OnRailsExit;
+等等
+```
+### EntityHitbox
+挂在人物身上的，主要是对他人造成伤害或破坏，还允许实体通过反弹来施加伤害以对命中事件做出反应；施加一些力是游戏操作更加丝滑真实。
+### EntityState
+所有状态的基类。主要是PlayerState和EnemyState继承的，然后搭配相关的StateManager使用，可以实现更多复杂的状态，以下代码强调子类必须实现这几个接口。
+```C#
+protected abstract void OnEnter(T entity);
+protected abstract void OnExit(T entity);
+protected abstract void OnStep(T entity);
+public abstract void OnContact(T entity, Collider other);
+```
+### EntityStateManager
+跟上面是搭配使用的，主要是管理状态的，然后可以切换。动画状态机基本就是这个的可视化，这样理解更加直观一些。
+### EntityStateManagerEvents
+核心就这三个事件
+```C#
+public UnityEvent onChange;
+public UnityEvent<Type> onEnter;
+public UnityEvent<Type> onExit;
+```
+### EntityStateManagerListener
+维护一个states状态组，当状态进入或者退出的时候，你关心的这个states就可以做一些操作了，这个用在了人物攻击的时候。
+```C#
+protected virtual void OnEnter(Type state)
+{
+    if (states.Contains(state.Name))
+    {
+        onEnter.Invoke();
+    }
+}
+```
+### EntityStats
+是一个Scriptable脚本记录了所有的状态值，好处是完全可以开放给策划配置，或者说搞一个excel读进来，不过这不是本例子的实现方式。
+### EntityStatsManager
+搭配上面使用的
+### EntityVolumeEffector
+主要是后期的泥浆Mud用这个，可以很好的处理玩家的缓动速度
+```C#
+protected virtual void OnTriggerEnter(Collider other)
+{
+    if (other.TryGetComponent(out Entity entity))
+    {
+        entity.velocity *= velocityConversion;
+        entity.accelerationMultiplier = accelerationMultiplier;
+        entity.topSpeedMultiplier = topSpeedMultiplier;
+        entity.decelerationMultiplier = decelerationMultiplier;
+        entity.turningDragMultiplier = turningDragMultiplier;
+        entity.gravityMultiplier = gravityMultiplier;
+    }
+}
+```
+
+## 制作过程中的一些笔记
+### 
