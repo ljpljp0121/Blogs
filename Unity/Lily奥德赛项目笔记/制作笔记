@@ -81,4 +81,4 @@ protected virtual void OnTriggerEnter(Collider other)
 ```
 
 ## 制作过程中的一些笔记
-### 
+### 首先搭建了一个状态机，想要做好也是比较困难的。首先要
