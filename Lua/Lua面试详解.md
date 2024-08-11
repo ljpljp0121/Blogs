@@ -258,7 +258,7 @@ function reloadUp(module_name)
     -- 重新加载模块，实际上是执行了模块的文件，加载新的内容到内存
     require(module_name)
     -- 从全局环境 G中获取刚加载的新模块表
-    local new_module = G[module_name7]
+    local new_module = G[module_name]
     -- 遍历新模块表中的所有字段
     for k，v in pairs(new_module) do
         --将新模块表中的字段复制到旧模块表中，实现更新

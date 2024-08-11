@@ -1,0 +1,16 @@
+# 类奥德赛
+## 项目概述
+项目类图如下
+![alt text](完整类图.png)
+整体项目核心是维护一个有限状态机，玩家每个时刻只可能处于一个状态。
+**这个游戏的核心就是通过合理的架构维护状态机，然后修正玩家的状态，其中最主要的就是垂直和水平两个速度，∈各种手感都是维护这两个变量而呈现出来的。**
+
+## 使用inputSystem
+创建一个inputsystem，为想要操控的人物添加脚本，脚本需要声明InputActionAsset类型的组件，并将创建的资源拖到上面。然后在代码中使用InputAction类型将对应的Actions取出来如：
+```C#
+InputAction m_movement = actions["Movement"];
+```
+详细可看文件夹中PlayerInputManager脚本
+
+## 状态机
+![alt text](有限状态机.png)
