@@ -35,7 +35,7 @@
      require是引用函数
  
 ## 元表 
-1. 用来定义对table活userdata操作方式的表
+1. 用来定义对table或userdata操作方式的表
 2. 两个表正常不能相加， 这是通过元表定义如何执行。
 3. local mt = {}
     mt._add = function(t1,t2)
