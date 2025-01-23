@@ -1,0 +1,20 @@
+{
+    "name": "Test",
+    "rootNamespace": "",
+    "references": [
+        "GUID:78125a73d767e6c4d87fc82aeff87182",
+        "GUID:1491147abca9d7d4bb7105af628b223e",
+        "GUID:5830f2d55018a3242b0acbb099df446e",
+        "GUID:7cb2814e6655d904f952bf240b160d11",
+        "GUID:04cdbfa72ece8984c97ead1c8f044ed2"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
